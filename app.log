@@ -1,0 +1,28 @@
+2024-08-05 17:45:33,403 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.53:5000
+2024-08-05 17:45:33,403 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2024-08-05 17:45:46,061 - __main__ - INFO - Checked phone 79129034363 in table 0: exists=True
+2024-08-05 17:45:46,061 - werkzeug - INFO - 192.168.0.77 - - [05/Aug/2024 17:45:46] "POST /exist HTTP/1.1" 200 -
+2024-08-05 17:50:17,320 - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.53:5000
+2024-08-05 17:50:17,321 - [33mPress CTRL+C to quit[0m
+2024-08-05 17:52:40,679 - 2024-08-05 17:52:40 - Null - 79129034363 - 5 - False
+2024-08-05 17:52:40,679 - 192.168.0.77 - - [05/Aug/2024 17:52:40] "POST /exist HTTP/1.1" 200 -
+2024-08-05 17:52:47,747 - 2024-08-05 17:52:47 - Null - 73452666472 - 5 - False
+2024-08-05 17:52:47,747 - 192.168.0.77 - - [05/Aug/2024 17:52:47] "POST /exist HTTP/1.1" 200 -
+2024-08-05 17:53:51,882 - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.53:5000
+2024-08-05 17:53:51,882 - [33mPress CTRL+C to quit[0m
+2024-08-05 17:53:56,975 - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.53:5000
+2024-08-05 17:53:56,976 - [33mPress CTRL+C to quit[0m
+2024-08-05 17:54:14,784 - 2024-08-05 17:54:14 - Null - 79129034363 - 5 - False
+2024-08-05 17:54:14,784 - 192.168.0.77 - - [05/Aug/2024 17:54:14] "POST /exist HTTP/1.1" 200 -

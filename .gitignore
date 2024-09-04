@@ -1,0 +1,9 @@
+venv/
+clean_env/
+
+.idea/
+
+__pycache__/
+*.pyc
+
+Thumbs.db

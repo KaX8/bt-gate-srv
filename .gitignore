@@ -5,5 +5,6 @@ clean_env/
 
 __pycache__/
 *.pyc
+*.bak
 
 Thumbs.db

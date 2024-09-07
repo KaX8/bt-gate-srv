@@ -55,6 +55,8 @@ class TelegramBot:
                     await self.add_member_prep(update, context, context.user_data['table'], update.message.text)
                 if context.user_data['action'] == "remove":
                     await self.rem_member(update, context, context.user_data['table'], update.message.text)
+                if context.user_data['action'] == "get_signal":
+                    await self.rewrite_signal(update, context, update.message.text)
 
         else:
             await update.message.reply_text(f"Нет доступа :(")
@@ -154,6 +156,60 @@ class TelegramBot:
 
 
 
+    async def signal_menu(self, update, context):
+        sig_menu = InlineKeyboardMarkup(
+            [
+                [
+                    InlineKeyboardButton('Изменить сигнал', callback_data=f'signal')
+                ],
+            ]
+        )
+
+        currHex = pd.read_excel(f'tables/data_choose.xlsx', sheet_name="data")['hexData'].values[0]
+
+        if update.callback_query:
+            await update.callback_query.edit_message_text(f"Текущий сигнал: {currHex}\n", reply_markup=sig_menu)
+        else:
+            await update.message.reply_text(f"Текущий сигнал: {currHex}\n", reply_markup=sig_menu)
+
+    async def get_signal(self, update, context, msg=""):
+        context.user_data['awaiting_data'] = True
+        context.user_data['action'] = "get_signal"
+        
+
+        if update.callback_query:
+            await update.callback_query.edit_message_text("Введите новый HEX сигнал:" + msg)
+        else:
+            await update.message.reply_text("Введите новый HEX сигнал:" + msg)
+
+    async def rewrite_signal(self, update, context, data):
+
+        hexData = await self.check_signal_hex(data)
+
+        if hexData:
+            df = pd.read_excel('tables/data_choose.xlsx', sheet_name="data")
+            df.loc[0, 'hexData'] = hexData
+            df.to_excel('tables/data_choose.xlsx', sheet_name="data", index=False)
+
+            context.user_data['awaiting_data'] = None
+            context.user_data['action'] = None
+
+            await self.signal_menu(update, context)
+        else:
+            msg = "\nПроверьте корректность сигнала."
+            await self.get_signal(update, context, msg)
+
+    async def check_signal_hex(self, data):
+        cleaned_data = data.replace(' ', '')
+        
+        is_hex = re.fullmatch(r'[0-9a-fA-F]+', cleaned_data) is not None
+        
+        is_even_length = len(cleaned_data) % 2 == 0
+    
+        return cleaned_data if is_hex and is_even_length else None
+
+
+
     async def send_file(self, update, context, file_path='phone-calls.log'):
         if update.callback_query == None:
             chat_id = update.message.chat.id
@@ -231,6 +287,7 @@ class TelegramBot:
     async def test(self, update, context):
         pass
 
+
     async def general_callback_handler(self, update, context):
         query = update.callback_query
         await query.answer()
@@ -244,6 +301,8 @@ class TelegramBot:
             await self.table_menu(update, context, data.removeprefix('table_'))
         elif data.startswith("tm_"):
             await self.table_menu_handler(update, context, data.removeprefix('tm_'))
+        elif data.startswith("signal"):
+            await self.get_signal(update, context)
 
     async def tables_scroll_handler(self, update, context, data):
         if data == 'prev':
@@ -305,6 +364,7 @@ class TelegramBot:
             # "/remove_member - Удалить жителя \n" +
             "/logs - Файл логов звонков\n" +
             "/tables - Меню таблиц\n" +
+            "/choose - Выбор сигнала\n" +
             "/test - Тест\n" 
         )
 
@@ -324,6 +384,7 @@ class TelegramBot:
             "add_admin": self.add_admin,
             "logs": self.send_file,
             "tables": self.tables,
+            "sig": self.signal_menu,
             "test": self.test,
         }
 

@@ -40,6 +40,7 @@ def check_phone():
         return jsonify({"error": "Invalid phone or table number"}), 400
 
     table_path = f"tables/table-{table_num}.xlsx"
+    data_path = f"tables/data_choose.xlsx"
 
     try:
         # Проверяем наличие номера телефона в таблице
@@ -49,14 +50,17 @@ def check_phone():
         fio = record['ФИО'].values[0] if exists else "Null"
         aparts = record['Квартира'].values[0] if exists else "Null"
 
+        df = pd.read_excel(data_path, sheet_name='data')
+        data = df['hexData'].values[0]
+        
         # Запись в лог файл
-        log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - {fio} - {aparts} - {phone} - {table_num} - {'True' if exists else 'False'}"
+        log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - {fio} - {aparts} - {phone} - {table_num} - {'True' if exists else 'False'} - {data}"
         file_logger.info(log_message)
 
         # Логи в консоли
         logger.info(f"Checked phone {phone} in table {table_num}: exists={exists}")
 
-        return jsonify({"exists": exists})
+        return jsonify({"exists": exists, "data": data})
     except Exception as e:
         logger.error(f"Error processing request: {e}")
         return jsonify({"error": "Error processing request"}), 500

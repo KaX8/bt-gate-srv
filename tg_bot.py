@@ -397,7 +397,7 @@ class TelegramBot:
 
 
 def start():
-    token = "7142732303:AAGJo0ih0QAZM9on0SadhpmFuDjxH7Qs4gc"
+    token = "упс))"
     bot = TelegramBot(token)
     bot.start_bot()
 

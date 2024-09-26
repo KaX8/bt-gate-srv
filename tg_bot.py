@@ -1,3 +1,4 @@
+import bt_gate_config
 import os
 import re
 import logging

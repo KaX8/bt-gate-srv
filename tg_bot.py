@@ -4,6 +4,10 @@ import logging
 import pandas as pd
 import xlrd
 
+from flask import Flask, request, jsonify
+from flask_socketio import SocketIO, emit
+import requests
+
 from telegram import (
     ForceReply,
     Update,
@@ -30,8 +34,9 @@ logger = logging.getLogger(__name__)
 table_admins_path = "tables/admins.xlsx"
 
 class TelegramBot:
-    def __init__(self, token):
+    def __init__(self, token, ip):
         self.commands = {}
+        self.server_address = ip
         self.bot = self.initialize_bot(token)
 
     async def message_handler(self, update, context):
@@ -345,6 +350,25 @@ class TelegramBot:
                 print(prefix)
         else:
             await self.send_file_list(update, context)
+
+
+    async def send_command(self, update, context, command='open_gates'):
+        data_path = f"tables/data_choose.xlsx"
+        df = pd.read_excel(data_path, sheet_name='data')
+        command = df['hexData'].values[0]
+
+        command_data = {
+            'command': command
+        }
+
+        try:
+            response = requests.post(f'http://{self.server_address}/send_command', json=command_data)
+            if response.status_code == 200:
+                await update.message.reply_text("Команда отправлена.")
+            else:
+                await update.message.reply_text(f"Не удалось отправить команду.\n MSG:{e}")
+        except Exception as e:
+            await update.message.reply_text(f"Не удалось отправить команду.\n MSG:{e}")
             
 
     async def start_command(self, update, context):
@@ -365,6 +389,7 @@ class TelegramBot:
             "/logs - Файл логов звонков\n" +
             "/tables - Меню таблиц\n" +
             "/choose - Выбор сигнала\n" +
+            "/open - Открыть шлагбаум\n" +
             "/test - Тест\n" 
         )
 
@@ -385,6 +410,7 @@ class TelegramBot:
             "logs": self.send_file,
             "tables": self.tables,
             "sig": self.signal_menu,
+            "open": self.send_command,
             "test": self.test,
         }
 
@@ -397,8 +423,9 @@ class TelegramBot:
 
 
 def start():
-    token = "упс))"
-    bot = TelegramBot(token)
+    token = "tg_token"
+    server_address = 'ip:port'
+    bot = TelegramBot(token, server_address)
     bot.start_bot()
 
 

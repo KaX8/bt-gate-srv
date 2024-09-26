@@ -1,5 +1,7 @@
 from flask import Flask, request, jsonify
+from flask_sock import Sock
 import logging
+import json
 import pandas as pd
 from datetime import datetime
 
@@ -21,29 +23,73 @@ file_logger.setLevel(logging.INFO)
 file_logger.addHandler(file_handler)
 
 app = Flask(__name__)
+sock = Sock(app)
 
-@app.route('/exist', methods=['POST'])
-def check_phone():
+clients = []
+
+@app.route('/send_command', methods=['POST'])
+def send_command():
     data = request.get_json()
-    phone = data.get('phone')
-    table_num = data.get('table')
+    command = data.get('command')
+    if not command:
+        return jsonify({'error': 'No command provided'}), 400
 
+    # Отправляем команду ВСЕМ(пока что) подключенным клиентам
+    for ws in clients:
+        try:
+            ws.send(json.dumps({'command': command}))
+        except Exception as e:
+            print(f"Error sending message to client: {e}")
+
+    return jsonify({'success': True}), 200
+
+
+@sock.route('/ws')
+def websocket_route(ws):
+    print("Client connected")
+    clients.append(ws)
+    try:
+        while True:
+            data = ws.receive()
+            if data is None:
+                break
+            try:
+                json_data = json.loads(data)
+                if 'phone' in json_data and 'table' in json_data:
+                    phone = json_data['phone']
+                    table_num = json_data['table']
+                    handle_phone_check(ws, phone, table_num)
+                else:
+                    # че нибудь еще
+                    pass
+            except Exception as e:
+                print(f"Error processing message: {e}")
+    except Exception as e:
+        print(f"WebSocket error: {e}")
+    finally:
+        clients.remove(ws)
+        print("Client disconnected")
+
+def handle_phone_check(ws, phone, table_num):
     if phone is None:
-        logger.warning("No phone number provided in request")
-        return jsonify({"error": "No phone number provided"}), 400
+        logger.warning("No phone number provided in WebSocket message")
+        response = {"error": "No phone number provided"}
+        ws.send(json.dumps(response))
+        return
 
     try:
         phone = int(phone)
         table_num = int(table_num)
     except ValueError:
         logger.warning(f"Invalid phone or table number: phone={phone}, table={table_num}")
-        return jsonify({"error": "Invalid phone or table number"}), 400
+        response = {"error": "Invalid phone or table number"}
+        ws.send(json.dumps(response))
+        return
 
     table_path = f"tables/table-{table_num}.xlsx"
     data_path = f"tables/data_choose.xlsx"
 
     try:
-        # Проверяем наличие номера телефона в таблице
         df = pd.read_excel(table_path, sheet_name='members')
         record = df[df['Телефон'] == phone]
         exists = not record.empty
@@ -57,13 +103,14 @@ def check_phone():
         log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - {fio} - {aparts} - {phone} - {table_num} - {'True' if exists else 'False'} - {data}"
         file_logger.info(log_message)
 
-        # Логи в консоли
         logger.info(f"Checked phone {phone} in table {table_num}: exists={exists}")
 
-        return jsonify({"exists": exists, "data": data})
+        response = {"exists": exists, "data": data}
+        ws.send(json.dumps(response))
     except Exception as e:
         logger.error(f"Error processing request: {e}")
-        return jsonify({"error": "Error processing request"}), 500
+        response = {"error": "Error processing request"}
+        ws.send(json.dumps(response))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

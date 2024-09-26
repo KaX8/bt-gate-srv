@@ -1,10 +1,11 @@
 venv/
-clean_env/
 
 .idea/
 
 __pycache__/
 *.pyc
 *.bak
+*.log
+bot_data
 
 Thumbs.db

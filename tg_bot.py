@@ -423,9 +423,11 @@ class TelegramBot:
 
 
 def start():
-    token = "tg_token"
-    server_address = 'ip:port'
+    # bt_gate_token и bt_gate_server_address из config.py
+    token = bt_gate_config.token
+    server_address = bt_gate_config.server_address
     bot = TelegramBot(token, server_address)
+    #Запускаеммм
     bot.start_bot()
 
 
